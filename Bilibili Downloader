@@ -1,114 +1,173 @@
-from lxml import etree
-import requests
-import os
-import json
 import re
-import subprocess
-import random
+import sys
+from datetime import timedelta
+from json import loads
+from os import remove, path
+from subprocess import Popen
+from time import time
 
-__version__ = 'v0.1.0'
-__author__ = 'chaziming'
-
-HEADERS = {'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                         'Chrome/98.0.4758.102 Safari/537.36 Edg/98.0.1108.56'}
+from lxml import etree
+from requests import Session
+from requests.exceptions import RequestException
 
 
-def getHtml(baseurl):
+session = Session()
+
+
+def get_html(url):
+    global session
     head = {
-        "user-agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                      'Chrome/98.0.4758.102 Safari/537.36 Edg/98.0.1108.56'
+        "user-agent": "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.2pre) Gecko/20070215 K-Ninja/2.1.1"
     }
     try:
-        response = requests.get(url=baseurl, headers=head)
-        # 200表示服务器接受请求，会传回网页源代码，所以把文本内容传回来就行了
+        response = session.get(url=url, headers=head)
         if response.status_code == 200:
             return response.text
-    except:
+    except RequestException:
         print("请求失败")
+        quit()
 
 
-def getVideo(baseurl, p):
-    html = getHtml(baseurl)
-    pattern = r'\<script\>window\.__playinfo__=(.*?)\</script\>'
-    result = re.findall(pattern, html)[0]
-    temp = json.loads(result)
-
-    title = etree.HTML(html)
-
-    title = title.xpath('//div[@id="viewbox_report"]/h1/span/text()')[0]
-    title = str(title + p)
-    title = title.replace(' ', '')
-    print(title)
-    print(("开始下载--->") + title)
-
-    print('开始下载视频')
-    video_url = temp['data']['dash']['video'][0]['baseUrl']
-
-    audio_url = temp['data']['dash']['audio'][0]['baseUrl']
-    fileDownload(homeurl=baseurl, url=video_url, title=title, typ=0)
-    print('开始下载音频')
-    fileDownload(homeurl=baseurl, url=audio_url, title=title, typ=1)
-
-    print('正在合成音频')
-    combine(title)
+def get_title(url):
+    while True:
+        try:
+            html = get_html(url)
+            title = etree.HTML(html)
+            title = title.xpath('//div[@id="viewbox_report"]/h1/span/text()')[0]
+            break
+        except IndexError:
+            html = get_html(url)
+            title = etree.HTML(html)
+            title = title.xpath('//div[@id="viewbox_report"]/h1/span/text()')[0]
+            break
+    title = re.sub('[/\\\\:*;?"<>\\]|\\[] ', '', title)
+    print('您当前正在下载：', title)
+    return title
 
 
-def fileDownload(homeurl, url, title, typ):
-    # 添加请求头键值对,写上 refered:请求来源
+def file_download(url, video_url, audio_url, title):
+    global session
     headers = {
         "user-agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                       'Chrome/98.0.4758.102 Safari/537.36 Edg/98.0.1108.56'}
-    headers.update({'Referer': homeurl})
-    if typ == 0:
-        filename = "./" + title + ".flv"
-    else:
-        filename = "./" + title + ".mp3"
-    res = requests.Session()
-    # 指定每次下载1M的数据
-    i = random.randint(1020, 1050)
-    begin = 0
-    end = i * 1024 - 1
-    flag = 0
-    while True:
-        # 添加请求头键值对,写上 range:请求字节范围
-        i = random.randint(1020, 1050)
-        headers.update({'Range': 'bytes=' + str(begin) + '-' + str(end)})
-        # 获取视频分片
-        res = requests.get(url=url, headers=headers)
-        if res.status_code != 416:
-            # 响应码不为416时有数据，由于我们不是b站服务器，最终那个数据包的请求range肯定会超出限度，所以传回来的http状态码是416而不是206
-            begin = end + 1
-            end = end + i * 1024
+    headers.update({'Referer': url})
+    chunk_size = 1024 * 1024
+    headers['Range'] = 'bytes=' + '0' + '-'
+    video_res = session.get(url=video_url, stream=True, headers=headers)
+    video_size = int(video_res.headers['content-length'])
+    audio_res = session.get(url=audio_url, stream=True, headers=headers)
+    audio_size = int(audio_res.headers['content-length'])
+    total_size = video_size + audio_size
+    t = time()
+    speed = 0.0
+    size = 0
+    print('开始下载视频')
+    with open('%s_video.mp4' % title, 'ab') as f:
+        for data in video_res.iter_content(chunk_size=chunk_size):  # 每次只获取一个chunk_size大小
+            f.write(data)  # 每次只写入data大小
+            tt = time() - t
+            t = time()
+            size = len(data) + size
+            # 'r'每次重新从开始输出，end = ""是不换行
+            percentage = int(size / total_size * 40)
+            if speed < 5.0:
+                color = '\033[1;31m'
+            else:
+                color = '\033[1;32m'
+            if speed == 0.0 or round((total_size - size) / chunk_size / speed) > 1800:
+                eta = '\033[1;31m' + ' >30min'
+            else:
+                eta = '\033[1;34m' + ' eta ' + str(timedelta(seconds=round((total_size - size) / chunk_size / speed)))
+            print('\r\t' + "\033[1;35m" + percentage * '━' + '\033[0m' + (40 - percentage) * '━' + '\033[1;35m',
+                  str(round(size / chunk_size, 1)) + '/' + str(round(total_size / chunk_size, 1)), "MB" + color,
+                  str(speed), 'MB/s' + eta, flush=True,
+                  end='')
+            sys.stdout.flush()
+            speed = round(float(chunk_size / 1024 / 1024) / tt, 1)
+    speed = 0
+    with open('%s_audio.mp4' % title, 'ab') as f:
+        for data in audio_res.iter_content(chunk_size=chunk_size):  # 每次只获取一个chunk_size大小
+            f.write(data)  # 每次只写入data大小
+            tt = time() - t
+            t = time()
+            size = len(data) + size
+            # 'r'每次重新从开始输出，end = ""是不换行
+            percentage = int(size / total_size * 40)
+            if speed < 5.0:
+                color = '\033[1;31m'
+            else:
+                color = '\033[1;32m'
+            if speed == 0.0 or round((total_size - size) / chunk_size / speed) > 1800:
+                eta = '\033[1;31m' + ' >30min'
+            else:
+                eta = '\033[1;34m' + ' eta ' + str(timedelta(seconds=round((total_size - size) / chunk_size / speed)))
+            print('\r\t' + "\033[1;35m" + percentage * '━' + '\033[0m' + (40 - percentage) * '━' + '\033[1;35m',
+                  str(round(size / chunk_size, 1)) + '/' + str(round(total_size / chunk_size, 1)), "MB" + color,
+                  str(speed), 'MB/s' + eta, flush=True,
+                  end='')
+            last_speed = speed
+            sys.stdout.flush()
+            speed = round(float(chunk_size / 1024 / 1024) / tt, 1)
+        if last_speed < 5.0:
+            color = '\033[1;31m'
         else:
-            print(end)
-            headers.update({'Range': str(end + 1) + '-'})
-            res = requests.get(url=url, headers=headers)
-            flag = 1
-        with open(filename, 'ab') as fp:
-            fp.write(res.content)
-            fp.flush()
-        if flag == 1:
-            print('下载成功')
-            fp.close()
-            break
+            color = '\033[1;32m'
+        print('\r\t''\033[1;32m' + 40 * '━' + '\033[1;32m',
+              str(round(size / chunk_size, 1)) + '/' + str(round(total_size / chunk_size, 1)), "MB" + color,
+              str(speed), 'MB/s' + '\033[1;34m', 'eta', '0:00:00' + '\033[0m', flush=True)
+
+
+def get_url(url):
+    quality_dict = {
+        '1': '高清 1080P',
+        '2': '高清 720P60',
+        '3': '清晰 480P',
+        '4': '流畅 360P',
+    }
+    html = get_html(url)
+    pattern = r'\<script\>window\.__playinfo__=(.*?)\</script\>'
+    result = re.findall(pattern, html)[0]
+    temp = loads(result)
+    print(re.sub('[{}\',]', '', str(quality_dict)))
+    quality = int(input('请选择视频画质：'))
+    accept_quality = temp['data']['accept_description'][quality]
+    video_time = temp['data']['dash']['duration']
+    video_minute = video_time // 60
+    video_second = video_time % 60
+    print('当前视频清晰度为{}，时长{}分{}秒'.format(accept_quality, video_minute, video_second))
+    video_url = temp['data']['dash']['video'][quality * 2 - 2]['baseUrl']
+    audio_url = temp['data']['dash']['audio'][0]['baseUrl']
+    return video_url, audio_url
 
 
 def combine(title):
-    COMMAND = f'ffmpeg -i {title}.flv -i {title}.mp3 -c:v copy -c:a aac -strict experimental {title}.mp4 '
-    subprocess.Popen(COMMAND, shell=True)
+    print('processing')
+    command = 'ffmpeg -i %s_video.mp4 -i %s_audio.mp4 -c copy %s.mp4 -y -loglevel quiet' % (
+        title, title, title)
+    Popen(command, shell=True)
+    while True:
+        try:
+            if path.exists('%s.mp4' % title):
+                remove('%s_video.mp4' % title)
+                remove('%s_audio.mp4' % title)
+                break
+        except PermissionError:
+            pass
 
 
 def main():
-    print("欢迎来到bilibili爬资源小程序，接下来让我们开始吧(视频在最后可能会重播放，正在努力修复这个bug中，敬请谅解。)")
-    bv = input("输入视频bv号: ")
-    p = input('请输入视频p号（默认为1）')
-    if p == '':
-        p = '1'
-    baseurl = "https://www.bilibili.com/video/BV" + str(bv) + "?p=" + str(p)
-    getVideo(baseurl, p)
-    os.system("pause")
+    print('\033[1;34m' + '欢迎使用bilibili下载器2.0\n'
+                         '修复bug：修复了在合成视频后视频播放结束后会出错的bug\n'
+                         '新增功能：增加了下载进度条，让您对下载进度了如指掌。' + '\033[0m')
+    url = input('请输入视频的网址：')
+    print('正在解析网页......')
+    title = get_title(url)
+    video_url, audio_url = get_url(url)
+    file_download(url, video_url, audio_url, title)
+    combine(title)
+    print('视频下载成功，请查收')
 
 
 if __name__ == "__main__":
     main()
-    print('合成完毕，请观看')
+
