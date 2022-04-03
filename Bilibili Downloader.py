@@ -1,15 +1,17 @@
 import re
 import sys
+
 from datetime import timedelta
 from json import loads
 from os import remove, path
 from subprocess import Popen
 from time import time
-
 from lxml import etree
 from requests import Session
 from requests.exceptions import RequestException
 
+__version__ = 'v0.2.1'
+__author__ = 'chaziming'
 
 session = Session()
 
@@ -17,7 +19,8 @@ session = Session()
 def get_html(url):
     global session
     head = {
-        "user-agent": "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.2pre) Gecko/20070215 K-Ninja/2.1.1"
+        "user-agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
+                      'Chrome/98.0.4758.102 Safari/537.36 Edg/98.0.1108.56'
     }
     try:
         response = session.get(url=url, headers=head)
@@ -47,12 +50,14 @@ def get_title(url):
 
 def file_download(url, video_url, audio_url, title):
     global session
+
     headers = {
         "user-agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                       'Chrome/98.0.4758.102 Safari/537.36 Edg/98.0.1108.56'}
     headers.update({'Referer': url})
-    chunk_size = 1024 * 1024
     headers['Range'] = 'bytes=' + '0' + '-'
+
+    chunk_size = 1024 * 1024
     video_res = session.get(url=video_url, stream=True, headers=headers)
     video_size = int(video_res.headers['content-length'])
     audio_res = session.get(url=audio_url, stream=True, headers=headers)
@@ -62,6 +67,7 @@ def file_download(url, video_url, audio_url, title):
     speed = 0.0
     size = 0
     print('开始下载视频')
+
     with open('%s_video.mp4' % title, 'ab') as f:
         for data in video_res.iter_content(chunk_size=chunk_size):  # 每次只获取一个chunk_size大小
             f.write(data)  # 每次只写入data大小
@@ -84,7 +90,9 @@ def file_download(url, video_url, audio_url, title):
                   end='')
             sys.stdout.flush()
             speed = round(float(chunk_size / 1024 / 1024) / tt, 1)
+
     speed = 0
+
     with open('%s_audio.mp4' % title, 'ab') as f:
         for data in audio_res.iter_content(chunk_size=chunk_size):  # 每次只获取一个chunk_size大小
             f.write(data)  # 每次只写入data大小
@@ -108,13 +116,15 @@ def file_download(url, video_url, audio_url, title):
             last_speed = speed
             sys.stdout.flush()
             speed = round(float(chunk_size / 1024 / 1024) / tt, 1)
-        if last_speed < 5.0:
-            color = '\033[1;31m'
-        else:
-            color = '\033[1;32m'
-        print('\r\t''\033[1;32m' + 40 * '━' + '\033[1;32m',
-              str(round(size / chunk_size, 1)) + '/' + str(round(total_size / chunk_size, 1)), "MB" + color,
-              str(speed), 'MB/s' + '\033[1;34m', 'eta', '0:00:00' + '\033[0m', flush=True)
+
+    if last_speed < 5.0:
+        color = '\033[1;31m'
+    else:
+        color = '\033[1;32m'
+    print('\r\t''\033[1;32m' + 40 * '━' + '\033[1;32m',
+          str(round(size / chunk_size, 1)) + '/' + str(round(total_size / chunk_size, 1)), "MB" + color,
+          str(speed), 'MB/s' + '\033[1;34m', 'eta', '0:00:00' + '\033[0m', flush=True)
+    combine(title)
 
 
 def get_url(url):
@@ -124,10 +134,12 @@ def get_url(url):
         '3': '清晰 480P',
         '4': '流畅 360P',
     }
+
     html = get_html(url)
     pattern = r'\<script\>window\.__playinfo__=(.*?)\</script\>'
     result = re.findall(pattern, html)[0]
     temp = loads(result)
+
     print(re.sub('[{}\',]', '', str(quality_dict)))
     quality = int(input('请选择视频画质：'))
     accept_quality = temp['data']['accept_description'][quality]
@@ -138,6 +150,15 @@ def get_url(url):
     video_url = temp['data']['dash']['video'][quality * 2 - 2]['baseUrl']
     audio_url = temp['data']['dash']['audio'][0]['baseUrl']
     return video_url, audio_url
+
+
+def get_number(url):
+    html = get_html(url)
+    pattern = r'\<script\>window\.__INITIAL_STATE__=(.*?)\</script\>'
+    result = re.findall(pattern, html)[0]
+    result = re.findall('"pages":(\\[.*?])', result)[0]
+    temp = loads(result)
+    return len(temp)
 
 
 def combine(title):
@@ -155,19 +176,28 @@ def combine(title):
             pass
 
 
+def announcement():
+    title = 'Bilibili Downloader' + ' '
+    author = 'chaziming'
+    version = 'v0.2.1'
+    dividing_line = '-' * 40 + '\n'
+    fix_bugs = '修复bug：修复了在合成视频后视频播放结束后会出错的\n' \
+               'bug\n'
+    optimization = '一.新增功能：1.增加了下载进度条，让您对下载进度了如指掌\n'
+    print('\033[1;34m' + dividing_line + title, version, 'by', author)
+    print('公告：\n' + fix_bugs + optimization + dividing_line + '\033[0m')
+    return
+
+
 def main():
-    print('\033[1;34m' + '欢迎使用bilibili下载器2.0\n'
-                         '修复bug：修复了在合成视频后视频播放结束后会出错的bug\n'
-                         '新增功能：增加了下载进度条，让您对下载进度了如指掌。' + '\033[0m')
-    url = input('请输入视频的网址：')
+    announcement()
+    print('欢迎使用bilibili下载器')
+    url = re.findall('(.*?)\\?', input('请输入视频的网址：'))[0]
     print('正在解析网页......')
-    title = get_title(url)
     video_url, audio_url = get_url(url)
-    file_download(url, video_url, audio_url, title)
-    combine(title)
+    file_download(url, video_url, audio_url, get_title(url))
     print('视频下载成功，请查收')
 
 
 if __name__ == "__main__":
     main()
-
