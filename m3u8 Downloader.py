@@ -1,5 +1,5 @@
 # =======================================================
-# Bilibili Downloader
+# m3u8 Downloader
 # Copyright (c) 2022 chaziming
 # All rights reserved.
 #
