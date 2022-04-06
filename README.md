@@ -1,6 +1,9 @@
 # Video-Downloader
 ## 存储中国各大视频网站的爬虫（下载器）
 
+
+包含python和Windows版本
+
 目前支持的网站：  
 1.__哔哩哔哩__  
 
