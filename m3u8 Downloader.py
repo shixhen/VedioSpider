@@ -1,3 +1,11 @@
+# =======================================================
+# Bilibili Downloader
+# Copyright (c) 2022 chaziming
+# All rights reserved.
+#
+# 本开源程序遵顼 Apache License 2.0 协议
+# =======================================================
+
 import requests
 import re
 from Crypto.Cipher import AES
