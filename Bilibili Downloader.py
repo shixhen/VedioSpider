@@ -1,3 +1,15 @@
+# =======================================================
+# Bilibili Downloader
+# Copyright (c) 2022 chaziming
+# All rights reserved.
+#
+# 本开源程序遵顼 Apache License 2.0 协议
+# =======================================================
+
+"""
+需要ffmpeg
+"""
+
 import re
 import sys
 
@@ -10,7 +22,7 @@ from lxml import etree
 from requests import Session
 from requests.exceptions import RequestException
 
-__version__ = 'v0.2.1'
+__version__ = 'v0.2.2'
 __author__ = 'chaziming'
 
 session = Session()
@@ -179,13 +191,14 @@ def combine(title):
 def announcement():
     title = 'Bilibili Downloader' + ' '
     author = 'chaziming'
-    version = 'v0.2.1'
+    version = 'v0.2.2'
     dividing_line = '-' * 40 + '\n'
     fix_bugs = '修复bug：修复了在合成视频后视频播放结束后会出错的\n' \
                'bug\n'
-    optimization = '一.新增功能：1.增加了下载进度条，让您对下载进度了如指掌\n'
+    optimization = '优化：1.增加了许可证声明\n'
+    spread = 'latest_news see: https://github.com/chaziming/Video-Downloader\n'
     print('\033[1;34m' + dividing_line + title, version, 'by', author)
-    print('公告：\n' + fix_bugs + optimization + dividing_line + '\033[0m')
+    print(fix_bugs + optimization + spread + dividing_line + '\033[0m')
     return
 
 
