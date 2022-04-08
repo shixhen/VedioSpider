@@ -7,7 +7,12 @@
 # =======================================================
 
 """
-需要ffmpeg
+说明：一.需要ffmpeg并设置环境变量以完成视频合成
+二.本程序优点：1.只需输入哔哩哔哩网址就可爬取视频，最高支持高清1080P画质
+2.个性化进度条展示
+缺点：1.不是gui编程
+2.目前只支持一次下载一个视频，后续会更新一次爬取整个系列的视频
+三：具体消息/更新内容请浏览下方announcement()函数
 """
 
 import re
@@ -193,23 +198,44 @@ def announcement():
     author = 'chaziming'
     version = 'v0.2.2'
     dividing_line = '-' * 40 + '\n'
-    fix_bugs = '修复bug：修复了在合成视频后视频播放结束后会出错的\n' \
-               'bug\n'
-    optimization = '优化：1.增加了许可证声明\n'
-    spread = 'latest_news see: https://github.com/chaziming/Video-Downloader\n'
+    fix_bugs = '暂无'
+    optimization = '一.新增功能：1.增强了在下载系列视频时的体验\n'
+    spread = 'more see: https://github.com/chaziming/Video-Downloader\n'
     print('\033[1;34m' + dividing_line + title, version, 'by', author)
-    print(fix_bugs + optimization + spread + dividing_line + '\033[0m')
+    print('公告：\n' + fix_bugs + optimization + spread + dividing_line + '\033[0m')
     return
 
 
 def main():
     announcement()
     print('欢迎使用bilibili下载器')
+    print('\033[1;31m' + '请确保已下载ffmpeg并设置好了环境变量，否则到最后将无法合成视频！！！' + '\033[0m')
     url = re.findall('(.*?)\\?', input('请输入视频的网址：'))[0]
     print('正在解析网页......')
+    number = get_number(url)
+    if number > 1:
+        print(f'检测到您正在下载系列视频，且该系列视频共有{number}个')
+        p = input('请输入您要爬取的集数（目前只支持输入一个，如果要爬取全部请输入0）：')
+        url = re.findall('http.*?BV.*?\\?', url)[0]
+        if p == '0':
+            for i in range(number):
+                video_url, audio_url = get_url(url + 'p=' + i+1)
+                file_download(url, video_url, audio_url, get_title(url))
+            print('视频下载成功，请查收')
+            input('按回车以结束程序')
+            quit()
+        else:
+            p = int(p)
+            video_url, audio_url = get_url(url + 'p=' + p)
+            file_download(url, video_url, audio_url, get_title(url))
+            print('视频下载成功，请查收')
+            input('按回车以结束程序')
+            quit()
     video_url, audio_url = get_url(url)
     file_download(url, video_url, audio_url, get_title(url))
     print('视频下载成功，请查收')
+    input('按回车以结束程序')
+    quit()
 
 
 if __name__ == "__main__":
