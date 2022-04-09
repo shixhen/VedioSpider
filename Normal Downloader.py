@@ -3,7 +3,7 @@
 # Copyright (c) 2022 chaziming
 # All rights reserved.
 #
-# 本开源程序遵顼 Apache License 2.0 协议
+# 本开源程序遵循 Apache License 2.0 协议
 # =======================================================
 
 """
