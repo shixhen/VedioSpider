@@ -60,6 +60,7 @@ def get_title(url):
             title = title.xpath('//div[@id="viewbox_report"]/h1/span/text()')[0]
             break
     title = re.sub('[/\\\\:*;?"<>\\]|\\[] ', '', title)
+    title = re.sub(' ', '', title)
     print('您当前正在下载：', title)
     return title
 
@@ -105,7 +106,10 @@ def file_download(url, video_url, audio_url, title):
                   str(speed), 'MB/s' + eta, flush=True,
                   end='')
             sys.stdout.flush()
-            speed = round(float(chunk_size / 1024 / 1024) / tt, 1)
+            try:
+                speed = round(float(chunk_size / 1024 / 1024) / tt, 1)
+            except ZeroDivisionError:
+                speed = '错误'
 
     speed = 0
 
@@ -131,7 +135,10 @@ def file_download(url, video_url, audio_url, title):
                   end='')
             last_speed = speed
             sys.stdout.flush()
-            speed = round(float(chunk_size / 1024 / 1024) / tt, 1)
+            try:
+                speed = round(float(chunk_size / 1024 / 1024) / tt, 1)
+            except ZeroDivisionError:
+                speed = '错误'
 
     if last_speed < 5.0:
         color = '\033[1;31m'
@@ -209,7 +216,8 @@ def main():
     announcement()
     print('欢迎使用bilibili下载器')
     print('\033[1;31m' + '请确保已下载ffmpeg并设置好了环境变量，否则到最后将无法合成视频！！！' + '\033[0m')
-    url = re.findall('(.*?)\\?', input('请输入视频的网址：'))[0]
+    url = re.findall('(.*?\\?)', input('请输入视频的网址：'))[0]
+    print(url)
     print('正在解析网页......')
     number = get_number(url)
     if number > 1:
@@ -224,17 +232,17 @@ def main():
             input('按回车以结束程序')
             quit()
         else:
-            p = int(p)
             video_url, audio_url = get_url(url + 'p=' + p)
             file_download(url, video_url, audio_url, get_title(url))
             print('视频下载成功，请查收')
             input('按回车以结束程序')
             quit()
-    video_url, audio_url = get_url(url)
-    file_download(url, video_url, audio_url, get_title(url))
-    print('视频下载成功，请查收')
-    input('按回车以结束程序')
-    quit()
+    else:
+        video_url, audio_url = get_url(url)
+        file_download(url, video_url, audio_url, get_title(url))
+        print('视频下载成功，请查收')
+        input('按回车以结束程序')
+        quit()
 
 
 if __name__ == "__main__":
