@@ -1,17 +1,18 @@
+# -*- coding:utf-8 -*-
 # =======================================================
 # m3u8 Downloader
 # Copyright (c) 2022 chaziming
 # All rights reserved.
 #
-# ±¾¿ªÔ´³ÌĞò×ñÑ­ Apache License 2.0 Ğ­Òé
+# æœ¬å¼€æºç¨‹åºéµå¾ª Apache License 2.0 åè®®
 # =======================================================
 
 """
-ËµÃ÷£º
-Ò».±¾³ÌĞòÓÅµã£º1.µõ´òÆäËûm3u8ÏÂÔØÆ÷£¬ÓµÓĞ·ÀÖ¹¿¨ËÀ£¬×Ô¶¯ÖØÁ¬£¬¶àÏß³Ì¹¦ÄÜ£¬ËÙ¶È·Ç³£¿ì
-2.Á¬ĞøĞÔÇ¿£¬¼´Ê¹³ÌĞòÔËĞĞÊ±¹ØµôÔÙ´ò¿ª£¬Ö»ĞèÖØĞÂÊäÈëÏàÍ¬µÄm3u8µØÖ·¾Í¿ÉÒÔ½Ó×ÅÉÏ´ÎµÄ½ø¶È¼ÌĞø
-È±µã£º1.²»ÊÇgui³ÌĞò
-¶ş.¾ßÌåÏûÏ¢/¸üĞÂÄÚÈİÇëä¯ÀÀÏÂ·½announcement()º¯Êı
+è¯´æ˜ï¼š
+ä¸€.æœ¬ç¨‹åºä¼˜ç‚¹ï¼š1.åŠæ‰“å…¶ä»–m3u8ä¸‹è½½å™¨ï¼Œæ‹¥æœ‰é˜²æ­¢å¡æ­»ï¼Œè‡ªåŠ¨é‡è¿ï¼Œå¤šçº¿ç¨‹åŠŸèƒ½ï¼Œé€Ÿåº¦éå¸¸å¿«
+2.è¿ç»­æ€§å¼ºï¼Œå³ä½¿ç¨‹åºè¿è¡Œæ—¶å…³æ‰å†æ‰“å¼€ï¼Œåªéœ€é‡æ–°è¾“å…¥ç›¸åŒçš„m3u8åœ°å€å°±å¯ä»¥æ¥ç€ä¸Šæ¬¡çš„è¿›åº¦ç»§ç»­
+ç¼ºç‚¹ï¼š1.ä¸æ˜¯guiç¨‹åº
+äºŒ.å…·ä½“æ¶ˆæ¯/æ›´æ–°å†…å®¹è¯·æµè§ˆä¸‹æ–¹announcement()å‡½æ•°
 """
 
 __version__ = 'v0.2.0'
@@ -60,25 +61,25 @@ class M3U8_Downloader:
         author = 'chaziming'
         version = 'v0.2.0'
         dividing_line = '-' * 40 + '\n'
-        feature = '±¾³ÌĞòÌØµã£ºÓÅµã£º1.µõ´òÆäËûm3u8ÏÂÔØÆ÷£¬ÓµÓĞ·ÀÖ¹\n' \
-                  '¿¨ËÀ£¬×Ô¶¯ÖØÁ¬£¬¶àÏß³Ì¹¦ÄÜ£¬ËÙ¶È·Ç³£¿ì\n' \
-                  '2.Á¬ĞøĞÔÇ¿£¬¼´Ê¹³ÌĞòÔËĞĞÊ±¹ØµôÔÙ´ò¿ª£¬Ö»ĞèÖØĞÂÊä\n' \
-                  'ÈëÏàÍ¬µÄm3u8µØÖ·¾Í¿ÉÒÔ½Ó×ÅÉÏ´ÎµÄ½ø¶È¼ÌĞø\n' \
-                  'È±µã£º1.²»ÊÇgui³ÌĞò\n'
-        fix_bugs = 'ĞŞ¸´bug£ºÔİÎŞ\n'
-        optimization = 'ÓÅ»¯£º1.ĞÂÔöÁË×Ô¶¨ÒåÂ·¾¶¹¦ÄÜ\n' \
-                       '2.ĞÂÔöÁË×Ô¶¨ÒåÏß³ÌÊı¹¦ÄÜ\n' \
-                       '3.ÓÅ»¯ÁËµ×²ãÂß¼­£¬Ê¹ÔËĞĞ¸ü¼ÓË³³©\n' \
-                       '4.Ôö¼ÓÁË×Ô¶¯ÖØÁ¬µÄÊ±¼ä£¬·ÀÖ¹ÍøËÙÂı¶øµ¼ÖÂÆµ·±ÖØÁ¬\n'
+        feature = 'æœ¬ç¨‹åºç‰¹ç‚¹ï¼šä¼˜ç‚¹ï¼š1.åŠæ‰“å…¶ä»–m3u8ä¸‹è½½å™¨ï¼Œæ‹¥æœ‰é˜²æ­¢\n' \
+                  'å¡æ­»ï¼Œè‡ªåŠ¨é‡è¿ï¼Œå¤šçº¿ç¨‹åŠŸèƒ½ï¼Œé€Ÿåº¦éå¸¸å¿«\n' \
+                  '2.è¿ç»­æ€§å¼ºï¼Œå³ä½¿ç¨‹åºè¿è¡Œæ—¶å…³æ‰å†æ‰“å¼€ï¼Œåªéœ€é‡æ–°è¾“\n' \
+                  'å…¥ç›¸åŒçš„m3u8åœ°å€å°±å¯ä»¥æ¥ç€ä¸Šæ¬¡çš„è¿›åº¦ç»§ç»­\n' \
+                  'ç¼ºç‚¹ï¼š1.ä¸æ˜¯guiç¨‹åº\n'
+        fix_bugs = 'ä¿®å¤bugï¼šæš‚æ— \n'
+        optimization = 'ä¼˜åŒ–ï¼š1.æ–°å¢äº†è‡ªå®šä¹‰è·¯å¾„åŠŸèƒ½\n' \
+                       '2.æ–°å¢äº†è‡ªå®šä¹‰çº¿ç¨‹æ•°åŠŸèƒ½\n' \
+                       '3.ä¼˜åŒ–äº†åº•å±‚é€»è¾‘ï¼Œä½¿è¿è¡Œæ›´åŠ é¡ºç•…\n' \
+                       '4.å¢åŠ äº†è‡ªåŠ¨é‡è¿çš„æ—¶é—´ï¼Œé˜²æ­¢ç½‘é€Ÿæ…¢è€Œå¯¼è‡´é¢‘ç¹é‡è¿\n'
         spread = 'more: \nhttps://github.com/chaziming/Video-Downloader\n'
         print('\033[1;34m' + dividing_line + title, version, 'by', author)
-        print(feature + '¹«¸æ£º\n' + fix_bugs + optimization + spread + dividing_line + '\033[0m')
+        print(feature + 'å…¬å‘Šï¼š\n' + fix_bugs + optimization + spread + dividing_line + '\033[0m')
 
     def get_url(self):
         while True:
             try:
-                m3u8_url = input('ÇëÊäÈëm3u8µØÖ·£º')
-                print('¿ªÊ¼»ñÈ¡m3u8ÄÚÈİ')
+                m3u8_url = input('è¯·è¾“å…¥m3u8åœ°å€ï¼š')
+                print('å¼€å§‹è·å–m3u8å†…å®¹')
                 m = 1
                 while True:
                     try:
@@ -86,16 +87,16 @@ class M3U8_Downloader:
                         if response.status_code == 200:
                             break
                     except requests.exceptions.ReadTimeout:
-                        print(f'\033[1;31mÁ¬½Ó³¬Ê±£¬ÕıÔÚ°ïÄú×Ô¶¯ÖØÁ¬£¬£¨µÚ \033[1;36m{m}\033[1;31m´ÎÖØÁ¬£©\033[0m ')
+                        print(f'\033[1;31mè¿æ¥è¶…æ—¶ï¼Œæ­£åœ¨å¸®æ‚¨è‡ªåŠ¨é‡è¿ï¼Œï¼ˆç¬¬ \033[1;36m{m}\033[1;31mæ¬¡é‡è¿ï¼‰\033[0m ')
                         m += 1
                 content = response.text
-                print('³É¹¦»ñÈ¡m3u8ÎÄ¼şÄÚÈİ')
+                print('æˆåŠŸè·å–m3u8æ–‡ä»¶å†…å®¹')
 
             except requests.exceptions.RequestException:
-                print("ÄúÊäÈëµÄm3u8µØÖ·ÓĞÎó»ò·şÎñÆ÷¾Ü¾øÁ¬½Ó£¬ÇëÖØĞÂÊäÈë")
+                print("æ‚¨è¾“å…¥çš„m3u8åœ°å€æœ‰è¯¯æˆ–æœåŠ¡å™¨æ‹’ç»è¿æ¥ï¼Œè¯·é‡æ–°è¾“å…¥")
                 continue
             if "#EXTM3U" not in content:
-                print("Õâ²»ÊÇÒ»¸öm3u8µÄÊÓÆµÁ´½Ó£¡ÇëÖØĞÂÊäÈë")
+                print("è¿™ä¸æ˜¯ä¸€ä¸ªm3u8çš„è§†é¢‘é“¾æ¥ï¼è¯·é‡æ–°è¾“å…¥")
                 continue
             else:
                 self.m3u8_url = m3u8_url
@@ -108,11 +109,11 @@ class M3U8_Downloader:
             each_url = urljoin(self.m3u8_url, i)
             self.ts_url.append(each_url)
         self.quantity = len(self.ts_url)
-        print('ÄúÏÂÔØµÄÊÓÆµÆ¬¶Î×Ü¹²ÓĞ', self.quantity)
+        print('æ‚¨ä¸‹è½½çš„è§†é¢‘ç‰‡æ®µæ€»å…±æœ‰', self.quantity)
         return
 
     def get_path(self):
-        print('ÇëÔÚµ¯³öµÄ´°¿ÚÖĞÑ¡ÔñÊÓÆµÎ»ÖÃ')
+        print('è¯·åœ¨å¼¹å‡ºçš„çª—å£ä¸­é€‰æ‹©è§†é¢‘ä½ç½®')
         time.sleep(2)
         root = tk.Tk()
         root.withdraw()
@@ -120,7 +121,7 @@ class M3U8_Downloader:
         self.path = folder_path
 
     def get_name(self):
-        name = input('ÇëÌîĞ´±¾´ÎÏÂÔØµÄÎÄ¼şÃû£¨¿É¿Õ£¬Ä¬ÈÏÎªµ±Ç°Ê±¼ä´Á£©')
+        name = input('è¯·å¡«å†™æœ¬æ¬¡ä¸‹è½½çš„æ–‡ä»¶åï¼ˆå¯ç©ºï¼Œé»˜è®¤ä¸ºå½“å‰æ—¶é—´æˆ³ï¼‰')
         if name == '':
             name = round(time.time())
         self.name = name
@@ -134,7 +135,7 @@ class M3U8_Downloader:
                 key = self.session.get(url=key_url, headers=self.headers, timeout=3).text.encode('utf-8')
                 break
             except requests.exceptions.ReadTimeout:
-                print(f'»ñÈ¡ÃÜÔ¿³¬Ê±£¬ÕıÔÚ°ïÄúÖØĞÂ»ñÈ¡£¨µÚ{i}´Î³¢ÊÔ£©')
+                print(f'è·å–å¯†é’¥è¶…æ—¶ï¼Œæ­£åœ¨å¸®æ‚¨é‡æ–°è·å–ï¼ˆç¬¬{i}æ¬¡å°è¯•ï¼‰')
                 i += 1
         self.cryptor = AES.new(key, AES.MODE_CBC, key)
 
@@ -146,7 +147,7 @@ class M3U8_Downloader:
                 res = self.session.get(url=url, headers=self.headers, timeout=5)
                 break
             except requests.exceptions.ReadTimeout:
-                print(f'»ñÈ¡µÚ{a}¸öÊÓÆµÆ¬¶Î³¬Ê±£¬ÕıÔÚ°ïÄúÖØĞÂ»ñÈ¡£¨µÚ{i}´Î³¢ÊÔ£©')
+                print(f'è·å–ç¬¬{a}ä¸ªè§†é¢‘ç‰‡æ®µè¶…æ—¶ï¼Œæ­£åœ¨å¸®æ‚¨é‡æ–°è·å–ï¼ˆç¬¬{i}æ¬¡å°è¯•ï¼‰')
                 i += 1
         cont = self.cryptor.decrypt(res.content)
         if os.path.isfile(self.path + f'/{self.name}/' + '%05d.ts' % a):
@@ -162,7 +163,7 @@ class M3U8_Downloader:
                 res = self.session.get(url=url, headers=self.headers, timeout=5)
                 break
             except requests.exceptions.ReadTimeout:
-                print(f'»ñÈ¡µÚ{a}¸öÊÓÆµÆ¬¶Î³¬Ê±£¬ÕıÔÚ°ïÄúÖØĞÂ»ñÈ¡£¨µÚ{i}´Î³¢ÊÔ£©')
+                print(f'è·å–ç¬¬{a}ä¸ªè§†é¢‘ç‰‡æ®µè¶…æ—¶ï¼Œæ­£åœ¨å¸®æ‚¨é‡æ–°è·å–ï¼ˆç¬¬{i}æ¬¡å°è¯•ï¼‰')
                 i += 1
         if os.path.isfile(self.path + f'/{self.name}/' + '%05d.ts' % a):
             pass
@@ -171,13 +172,13 @@ class M3U8_Downloader:
                 f.write(res.content)
 
     def encrypted_check(self):
-        print('ÕıÔÚ°ïÄú¼ì²éÊÇ·ñÓĞÒÅÂ©µÄÊÓÆµÆ¬¶Î')
+        print('æ­£åœ¨å¸®æ‚¨æ£€æŸ¥æ˜¯å¦æœ‰é—æ¼çš„è§†é¢‘ç‰‡æ®µ')
         for a in range(len(self.ts_url)):
             a += 1
             if os.path.isfile(self.path + f'/{self.name}/' + '%05d.ts' % a):
                 pass
             else:
-                print(f'¼ì²âµ½ÄúµÚ{a}¸öÊÓÆµÆ¬¶ÎÓĞÒÅÂ©£¬ÕıÔÚ°ïÄúÖØĞÂ»ñÈ¡')
+                print(f'æ£€æµ‹åˆ°æ‚¨ç¬¬{a}ä¸ªè§†é¢‘ç‰‡æ®µæœ‰é—æ¼ï¼Œæ­£åœ¨å¸®æ‚¨é‡æ–°è·å–')
                 url = self.ts_url[a - 1]
                 i = 1
                 while True:
@@ -185,21 +186,21 @@ class M3U8_Downloader:
                         res = self.session.get(url=url, headers=self.headers, timeout=5)
                         break
                     except requests.exceptions.ReadTimeout:
-                        print(f'»ñÈ¡µÚ{a}¸öÊÓÆµÆ¬¶Î³¬Ê±£¬ÕıÔÚ°ïÄúÖØĞÂ»ñÈ¡£¨µÚ{i}´Î³¢ÊÔ£©')
+                        print(f'è·å–ç¬¬{a}ä¸ªè§†é¢‘ç‰‡æ®µè¶…æ—¶ï¼Œæ­£åœ¨å¸®æ‚¨é‡æ–°è·å–ï¼ˆç¬¬{i}æ¬¡å°è¯•ï¼‰')
                         i += 1
                 with open(self.path + f'/{self.name}/%05d.ts' % a, 'wb') as f:
                     cont = self.cryptor.decrypt(res.content)
                     f.write(cont)
-        print('¼ì²éÍê±Ï£¬¿ªÊ¼ºÏ²¢')
+        print('æ£€æŸ¥å®Œæ¯•ï¼Œå¼€å§‹åˆå¹¶')
 
     def normal_check(self):
-        print('ÕıÔÚ°ïÄú¼ì²éÊÇ·ñÓĞÒÅÂ©µÄÊÓÆµÆ¬¶Î')
+        print('æ­£åœ¨å¸®æ‚¨æ£€æŸ¥æ˜¯å¦æœ‰é—æ¼çš„è§†é¢‘ç‰‡æ®µ')
         for a in range(len(self.ts_url)):
             a += 1
             if os.path.isfile(self.path + f'/{self.name}/' + '%05d.ts' % a):
                 pass
             else:
-                print(f'¼ì²âµ½ÄúµÚ{a}¸öÊÓÆµÆ¬¶ÎÓĞÒÅÂ©£¬ÕıÔÚ°ïÄúÖØĞÂ»ñÈ¡')
+                print(f'æ£€æµ‹åˆ°æ‚¨ç¬¬{a}ä¸ªè§†é¢‘ç‰‡æ®µæœ‰é—æ¼ï¼Œæ­£åœ¨å¸®æ‚¨é‡æ–°è·å–')
                 url = self.ts_url[a - 1]
                 i = 1
                 while True:
@@ -207,14 +208,14 @@ class M3U8_Downloader:
                         res = self.session.get(url=url, headers=self.headers, timeout=5)
                         break
                     except requests.exceptions.ReadTimeout:
-                        print(f'»ñÈ¡µÚ{a}¸öÊÓÆµÆ¬¶Î³¬Ê±£¬ÕıÔÚ°ïÄúÖØĞÂ»ñÈ¡£¨µÚ{i}´Î³¢ÊÔ£©')
+                        print(f'è·å–ç¬¬{a}ä¸ªè§†é¢‘ç‰‡æ®µè¶…æ—¶ï¼Œæ­£åœ¨å¸®æ‚¨é‡æ–°è·å–ï¼ˆç¬¬{i}æ¬¡å°è¯•ï¼‰')
                         i += 1
                 with open(self.path + f'/{self.name}/%05d.ts' % a, 'wb') as f:
                     f.write(res.content)
-        print('¼ì²éÍê±Ï£¬¿ªÊ¼ºÏ²¢')
+        print('æ£€æŸ¥å®Œæ¯•ï¼Œå¼€å§‹åˆå¹¶')
 
     def run(self):
-        threads = input('ÇëÊäÈëÏß³ÌÊı£¨¿É¿Õ£¬Ä¬ÈÏ10¸ö£©')
+        threads = input('è¯·è¾“å…¥çº¿ç¨‹æ•°ï¼ˆå¯ç©ºï¼Œé»˜è®¤10ä¸ªï¼‰')
         if threads:
             pool = Pool(int(threads))
         else:
@@ -230,7 +231,7 @@ class M3U8_Downloader:
         command = 'copy /b ' + self.path + f'/{self.name}/' + '*.ts ' + self.path + f'/{self.name}/{self.name}'\
                   + '.mp4 '
         Popen(command, shell=True)
-        print('ºÏ²¢Íê±Ï£¬Çë²éÊÕ')
+        print('åˆå¹¶å®Œæ¯•ï¼Œè¯·æŸ¥æ”¶')
         while True:
             if os.path.isfile(self.path + f'/{self.name}/{self.name}' + '.mp4'):
                 time.sleep(30)
@@ -238,7 +239,7 @@ class M3U8_Downloader:
                     a += 1
                     os.remove(self.path + f'/{self.name}/%05d.ts' % a)
                 break
-        print('³É¹¦É¾³ıËùÓĞÊÓÆµÆ¬¶Î')
+        print('æˆåŠŸåˆ é™¤æ‰€æœ‰è§†é¢‘ç‰‡æ®µ')
 
 
 if __name__ == "__main__":

@@ -1,3 +1,4 @@
+# -*- coding:utf-8 -*-
 # =======================================================
 # Bilibili Downloader
 # Copyright (c) 2022 chaziming
@@ -23,7 +24,7 @@ import datetime
 import threading
 import subprocess
 import tkinter as tk
-from tkinter import filedialog
+
 # 需要的第三方库：requests, lxml
 import requests
 from lxml import etree
@@ -33,6 +34,9 @@ __author__ = 'chaziming'
 
 
 def announcement():
+    """
+    公告函数
+    """
     title = 'Bilibili Downloader' + ' '
     author = __author__
     version = __version__
@@ -46,7 +50,8 @@ def announcement():
     fix_bugs = '修复了在下载系列视频时出现的一些bug'
     spread = 'more see: https://github.com/chaziming/Video-Downloader\n'
     print('\033[1;34m' + dividing_line + title, version, 'by', author)
-    print(feature + '公告：\n' + fix_bugs + optimization + spread + dividing_line + '\033[0m')
+    print(feature + '公告：\n' + fix_bugs + optimization +
+          spread + dividing_line + '\033[0m')
     return
 
 
@@ -55,8 +60,8 @@ def announcement():
 path: str  # 文件保存路径
 session = requests.Session()
 headers = {
-    "user-agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
-                  'Chrome/103.0.5060.114 Safari/537.36 Edg/103.0.1264.62'
+    "user-agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
+                  ' Chrome/103.0.5060.114 Safari/537.36 Edg/103.0.1264.62'
 }
 
 
@@ -105,7 +110,8 @@ def crawl(url, stream=None):
     request_counts = 0
     while True:
         try:
-            response = session.get(url=url, headers=headers, stream=stream, timeout=5)
+            response = session.get(
+                url=url, headers=headers, stream=stream, timeout=5)
             if response.status_code == 200 or response.status_code == 206:
                 break
         except requests.exceptions.RequestException or requests.exceptions.ReadTimeout:
@@ -196,7 +202,8 @@ class Bilibili_Downloader:
         temp = json.loads(result)
         accept_quality = temp['data']['accept_description'][quality]
         video_time = temp['data']['dash']['duration']
-        print('当前视频清晰度为{}，视频时长为{}'.format(accept_quality, datetime.timedelta(seconds=video_time)))
+        print('当前视频清晰度为{}，视频时长为{}'.format(accept_quality,
+              datetime.timedelta(seconds=video_time)))
         return None
 
     @staticmethod
@@ -228,17 +235,24 @@ class Bilibili_Downloader:
                 download_time = time.time() - timing
                 average_speed = self.file_size / download_time / chunk_size
                 if average_speed < 5.0:
-                    show_average_speed = '\033[1;31m' + str(round(average_speed, 1))
+                    show_average_speed = '\033[1;31m' + \
+                        str(round(average_speed, 1))
                 else:
-                    show_average_speed = '\033[1;32m' + str(round(average_speed, 1))
+                    show_average_speed = '\033[1;32m' + \
+                        str(round(average_speed, 1))
                 print('\r\t' + show_percentage,
-                      str(round(self.downloaded_size / chunk_size, 1)) + '/' + str(round(file_size / chunk_size, 1)),
-                      'MB', show_average_speed, 'MB/s', '\033[1;34m', 'eta', '0:00:00' + '\033[0m', flush=True)
+                      str(round(self.downloaded_size / chunk_size, 1)) +
+                      '/' + str(round(file_size / chunk_size, 1)),
+                      'MB', show_average_speed, 'MB/s',
+                      '\033[1;34m', 'eta', '0:00:00' + '\033[0m', flush=True)
                 break
             else:
-                percentage = int(self.downloaded_size / file_size * 40)  # 计算已下载的百分比
-                show_percentage = '\033[1;35m' + percentage * '━' + '\033[0m' + (40 - percentage) * '━' + '\033[1;35m'
-                show_downloader_size = str(round(self.downloaded_size / chunk_size, 1))
+                percentage = int(self.downloaded_size /
+                                 file_size * 40)  # 计算已下载的百分比
+                show_percentage = '\033[1;35m' + percentage * '━' + \
+                    '\033[0m' + (40 - percentage) * '━' + '\033[1;35m'
+                show_downloader_size = str(
+                    round(self.downloaded_size / chunk_size, 1))
                 show_file_size = str(round(file_size / chunk_size, 1))
                 speed = interval_downloaded / chunk_size
                 if speed < 5.0:
@@ -247,14 +261,16 @@ class Bilibili_Downloader:
                     show_speed = '\033[1;32m' + str(round(speed, 1))
 
                 try:
-                    eta = round((file_size - self.downloaded_size) / chunk_size / speed)  # 计算预计剩余时间
+                    eta = round((file_size - self.downloaded_size) /
+                                chunk_size / speed)  # 计算预计剩余时间
                 except ZeroDivisionError:
                     eta = 2000  # 如果当前下载速度为零则直接默认2000秒
                 # 给显示的预计剩余时间加上颜色，如果预计剩余时间大于30分钟则显示红色，反之，显示蓝色
                 if speed == 0.0 or eta > 1800:
                     show_eta = '\033[1;31m' + ' >30min'
                 else:
-                    show_eta = '\033[1;34m' + ' eta ' + str(datetime.timedelta(seconds=eta))
+                    show_eta = '\033[1;34m' + ' eta ' + \
+                        str(datetime.timedelta(seconds=eta))
                     # 'r'每次重新从开始输出，end = ''是不换行
                 print('\r\t' + show_percentage, show_downloader_size + '/' + show_file_size, 'MB', show_speed,
                       'MB/s', show_eta, flush=True, end='')
@@ -271,7 +287,8 @@ class Bilibili_Downloader:
                         'referer': self.url,
                         'Range': 'bytes=' + '0' + '-'})
         self.file_res = crawl(url=file_url, stream=True)  # 视频设置延迟
-        self.file_size = int(self.file_res.headers['content-length'])  # 获取视频文件大小
+        self.file_size = int(
+            self.file_res.headers['content-length'])  # 获取视频文件大小
         return
 
     def save_file(self):
