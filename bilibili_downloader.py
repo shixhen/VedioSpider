@@ -23,6 +23,7 @@ import json
 import datetime
 import subprocess
 import tkinter as tk
+from tkinter import filedialog
 
 # 需要的第三方库：requests, lxml
 import requests
@@ -119,7 +120,7 @@ def get_path():
     time.sleep(1)
     root = tk.Tk()
     root.withdraw()
-    folder_path = tk.filedialog.askdirectory()
+    folder_path = filedialog.askdirectory()
     print('您所选择的路径为：', folder_path)
     return folder_path
 
@@ -163,7 +164,7 @@ class BilibiliDownloader:
         :param url: url
         :return: None
         """
-        temp, title = crawl(url).text  # 获取temp和标题
+        temp, title = BilibiliDownloader.get_temp_and_title(url)  # 获取temp和标题
         BilibiliDownloader.get_duration(temp)  # 获取视频时长
         video_url, audio_url = BilibiliDownloader.get_video_and_audio_url(temp, url)  # 获取视频和音频的url
         path = get_path()
