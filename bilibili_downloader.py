@@ -1,7 +1,7 @@
 # -*- coding:utf-8 -*-
 # =======================================================
 # Bilibili Downloader
-# Copyright (c) 2022 chaziming
+# Copyright (c) 2022-2023 chaziming
 # All rights reserved.
 #
 # 本开源程序遵循 Apache License 2.0 协议
