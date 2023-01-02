@@ -21,7 +21,6 @@ import sys
 import time
 import json
 import datetime
-import threading
 import subprocess
 import tkinter as tk
 
@@ -53,7 +52,8 @@ def announcement():
     fix_bugs = '修复了在下载系列视频时出现的一些bug\n'
     spread = 'more see: https://github.com/chaziming/Video-Downloader\n抖音、bilibili关注拾痕！！！\n'
     print('\033[1;34m' + dividing_line + title, version, 'by', author)
-    print(feature + '\r' + '公告：\n' + fix_bugs + spread + dividing_line + '\033[0m')
+    print(feature + '\r' + '公告：\n' + fix_bugs +
+          spread + dividing_line + '\033[0m')
     return
 
 
@@ -123,7 +123,7 @@ def crawl(url, stream=None):
     return response
 
 
-class Bilibili_Downloader:
+class BilibiliDownloader:
     """
     bilibili下载器类
     """
@@ -151,13 +151,14 @@ class Bilibili_Downloader:
         :return: None
         """
         html = crawl(url).text  # 获取html
-        title = Bilibili_Downloader.get_title(html, url)  # 获取标题
-        quality = Bilibili_Downloader.get_quality(html)  # 获取用户选择的清晰度
-        Bilibili_Downloader.get_duration(html, quality)  # 获取视频时长
-        video_url, audio_url = Bilibili_Downloader.get_video_and_audio_url(html, quality)  # 获取视频和音频的url
-        Bilibili_Downloader.download(title, url, video_url)  # 下载视频
-        Bilibili_Downloader.download(title, url, audio_url)  # 下载音频
-        Bilibili_Downloader.combine(title)  # 合并
+        title = BilibiliDownloader.get_title(html, url)  # 获取标题
+        quality = BilibiliDownloader.get_quality(html)  # 获取用户选择的清晰度
+        BilibiliDownloader.get_duration(html, quality)  # 获取视频时长
+        video_url, audio_url = BilibiliDownloader.get_video_and_audio_url(
+            html, quality)  # 获取视频和音频的url
+        BilibiliDownloader.download(title, url, video_url)  # 下载视频
+        BilibiliDownloader.download(title, url, audio_url)  # 下载音频
+        BilibiliDownloader.combine(title)  # 合并
         return
 
     @staticmethod
@@ -252,9 +253,11 @@ class Bilibili_Downloader:
 
         percentage = int(downloaded_size / file_size * 40)  # 计算已下载的百分比
         # 显示的进度条
-        show_percentage = '\033[1;35m' + percentage * '━' + '\033[0m' + (40 - percentage) * '━' + '\033[1;35m'
+        show_percentage = '\033[1;35m' + percentage * '━' + \
+            '\033[0m' + (40 - percentage) * '━' + '\033[1;35m'
         show_file_size = str(round(file_size / chunk_size, 1))  # 显示的文件大小
-        show_downloader_size = str(round(downloaded_size / chunk_size, 1))  # 显示的已下载文件大小
+        show_downloader_size = str(
+            round(downloaded_size / chunk_size, 1))  # 显示的已下载文件大小
         # 计算速度
         speed = interval_downloaded / interval_time / chunk_size
         if speed < 5.0:
@@ -270,7 +273,8 @@ class Bilibili_Downloader:
         if speed == 0.0 or eta > 1800:
             show_eta = '\033[1;31m' + ' >30min'
         else:
-            show_eta = '\033[1;34m' + ' eta ' + str(datetime.timedelta(seconds=eta))
+            show_eta = '\033[1;34m' + ' eta ' + \
+                str(datetime.timedelta(seconds=eta))
 
             # 'r'每次重新从开始输出，end = ''是不换行
         print('\r\t' + show_percentage, show_downloader_size + '/' + show_file_size, 'MB', show_speed,
@@ -289,7 +293,8 @@ class Bilibili_Downloader:
         else:
             show_average_speed = '\033[1;32m' + str(round(average_speed, 1))
         print('\r\t' + show_percentage,
-              str(round(downloaded_size / chunk_size, 1)) + '/' + str(round(file_size / chunk_size, 1)), 'MB',
+              str(round(downloaded_size / chunk_size, 1)) + '/' +
+              str(round(file_size / chunk_size, 1)), 'MB',
               show_average_speed, 'MB/s', '\033[1;34m', 'eta', '0:00:00', '下载总用时：',
               str(round(total_time, 1)) + 's' + '\033[0m',
               flush=True)
@@ -311,7 +316,8 @@ class Bilibili_Downloader:
 
     @staticmethod
     def download(title, url, file_url):
-        file_res, file_size = Bilibili_Downloader._get_file_information(url, file_url)
+        file_res, file_size = BilibiliDownloader._get_file_information(
+            url, file_url)
         downloaded_size = 0  # 已下载的文件大小
         the_last_downloader_size = 0
         if os.path.exists('%s_video.mp4' % (path + '/' + title)):
@@ -325,10 +331,11 @@ class Bilibili_Downloader:
                 f.write(data)  # 每次只写入data大小
                 downloaded_size += len(data)
                 if downloaded_size == file_size:
-                    Bilibili_Downloader.show_end_bar(file_size, downloaded_size, time.time() - total_timing)
+                    BilibiliDownloader.show_end_bar(
+                        file_size, downloaded_size, time.time() - total_timing)
                 if time.time() - timing > 0.5:
                     interval_downloaded = downloaded_size - the_last_downloader_size
-                    Bilibili_Downloader.show_progress_bar(file_size, downloaded_size, time.time() - timing,
+                    BilibiliDownloader.show_progress_bar(file_size, downloaded_size, time.time() - timing,
                                                           interval_downloaded)
                     timing = time.time()
                     the_last_downloader_size = downloaded_size
@@ -363,7 +370,7 @@ def run():
     announcement()
     url = get_url()
     path = get_path()
-    Bilibili_Downloader(url)
+    BilibiliDownloader(url)
 
 
 if __name__ == "__main__":
