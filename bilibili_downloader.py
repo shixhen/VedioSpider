@@ -28,8 +28,8 @@ import tkinter as tk
 import requests
 from lxml import etree
 
-__version__ = 'v0.2.5'
-__author__ = 'chaziming'
+__version__ = 'v0.2.6'
+__author__ = 'shihen'
 
 
 def announcement():
@@ -49,22 +49,44 @@ def announcement():
              |  |         |   |       |         |  |           |         |
      ━━━━━━━━                                       ━━━━━━━━\n
     """
-    fix_bugs = '修复了在下载系列视频时出现的一些bug\n'
-    spread = 'more see: https://github.com/chaziming/Video-Downloader\n抖音、bilibili关注拾痕！！！\n'
+    fix_bugs = '更新了下载720P及以上视频的下载体验,加了更多的注释\n'
+    spread = 'more see: https://github.com/shihen-root/Video-Downloader\n抖音、bilibili关注拾痕！！！\n'
     print('\033[1;34m' + dividing_line + title, version, 'by', author)
     print(feature + '\r' + '公告：\n' + fix_bugs +
           spread + dividing_line + '\033[0m')
-    return
 
 
 # 需要的全局变量及其类型
 
-path: str  # 文件保存路径
 session = requests.Session()
 headers = {
     "user-agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
                   ' Chrome/103.0.5060.114 Safari/537.36 Edg/103.0.1264.62'
 }
+VIP_COOKIE = 'buvid3=DFA26D9B-518A-4145-8758-888B72993D8F148799infoc; ' \
+             'i-wanna-go-back=-1; ' \
+             'CURRENT_BLACKGAP=0; ' \
+             'LIVE_BUVID=AUTO1016452613863719; ' \
+             'nostalgia_conf=-1; buvid_fp_plain=undefined; ' \
+             'blackside_state=0; ' \
+             'b_ut=5; fingerprint3=5a97a8f930b1074ac7357c0ee89cb3fa; ' \
+             'hit-dyn-v2=1; ' \
+             'buvid4=21E8E608-FE86-570B-EC52-C0CA318A2DEF65231-022012119-' \
+             'TxfVXHJp3qfb+SCCWd0yMA==; ' \
+             'CURRENT_QUALITY=80; DedeUserID=1068621305; ' \
+             'DedeUserID__ckMd5=247502fb66fdaa13; ' \
+             'is-2022-channel=1; ' \
+             'b_nut=100; _uuid=36325A87-B114-34A10-EA710-95110D496F54533599infoc; ' \
+             'rpdid=0zbfAHVZbH|AfUglCw0|zmE|3w1OZ9zY; ' \
+             'hit-new-style-dyn=0; ' \
+             'fingerprint=78208089161326e760f875fff21b8084; ' \
+             'buvid_fp=78208089161326e760f875fff21b8084; ' \
+             'CURRENT_FNVAL=4048; bsource=search_bing; ' \
+             'SESSDATA=b930b292,1688186738,9bd88*11; ' \
+             'bili_jct=1f53edfff034a1ccb4d52918ad957a54; ' \
+             'sid=6in3dpol; innersign=1; ' \
+             'bp_video_offset_1068621305=745730705040867500; ' \
+             'PVID=2; b_lsid=2C910A10F8_185712549DD '
 
 
 def get_url():
@@ -111,12 +133,13 @@ def crawl(url, stream=None):
     """
     request_counts = 0
     while True:
+        # noinspection PyBroadException
         try:
             response = session.get(
                 url=url, headers=headers, stream=stream, timeout=5)
             if response.status_code == 200 or response.status_code == 206:
                 break
-        except requests.exceptions.RequestException or requests.exceptions.ReadTimeout:
+        except requests.exceptions.RequestException:
             request_counts += 1
             print(f'请求失败，正在帮您重新请求(请求次数：{request_counts})')
             time.sleep(1)
@@ -125,18 +148,8 @@ def crawl(url, stream=None):
 
 class BilibiliDownloader:
     """
-    bilibili下载器类
+    bilibili下载器的类
     """
-    quality_dict = {
-        '1': '高清 1080P',
-        '2': '高清 720P60',
-        '3': '清晰 480P',
-        '4': '流畅 360P',
-    }
-    file_size: int
-    file_path: str
-    downloaded_size = 0  # 已下载的文件大小
-    file_res: requests.models.Response
 
     @staticmethod
     def run(url):
@@ -150,114 +163,178 @@ class BilibiliDownloader:
         :param url: url
         :return: None
         """
-        html = crawl(url).text  # 获取html
-        title = BilibiliDownloader.get_title(html, url)  # 获取标题
-        quality = BilibiliDownloader.get_quality(html)  # 获取用户选择的清晰度
-        BilibiliDownloader.get_duration(html, quality)  # 获取视频时长
-        video_url, audio_url = BilibiliDownloader.get_video_and_audio_url(
-            html, quality)  # 获取视频和音频的url
-        BilibiliDownloader.download(title, url, video_url)  # 下载视频
-        BilibiliDownloader.download(title, url, audio_url)  # 下载音频
-        BilibiliDownloader.combine(title)  # 合并
+        temp, title = crawl(url).text  # 获取temp和标题
+        BilibiliDownloader.get_duration(temp)  # 获取视频时长
+        video_url, audio_url = BilibiliDownloader.get_video_and_audio_url(temp, url)  # 获取视频和音频的url
+        path = get_path()
+        BilibiliDownloader.download(title, url, video_url, path)  # 下载视频
+        BilibiliDownloader.download(title, url, audio_url, path)  # 下载音频
+        BilibiliDownloader.combine(title, path)  # 合并
         return
 
     @staticmethod
-    def get_title(html, url):
+    def get_temp_and_title(url):
         """
-        获取视频标题
-        :return : title
+        获取当前页面的temp字典
+        :param url:url
+        :return: temp字典和标题
         """
-        print('正在获取视频标题')
-        request_counts = 0
-        while True:
-            try:
-                title = etree.HTML(html)
-                title = title.xpath('//div[@id="viewbox_report"]/h1/text()')[0]
-                break
-            except IndexError:
-                request_counts += 1
-                print(f'获取标题失败，正在帮您重新请求（请求次数：{request_counts}）')
-                html = crawl(url)
-        # 标题违规字符处理，防止文件名报错
-        title = re.sub('[\\\\:*;?/"<>\\]|\\[] ', '', title)
-        title = re.sub(' ', '', title)
-        print('获取成功')
-        print('您当前正在下载：', title)
-        return title
-
-    def get_quality(self):
-        """
-        获取用户输入的画质
-        :return: 用户选择的画质序号
-        """
-        print(re.sub('[{}\',]', '', str(self.quality_dict)))
-        while True:
-            try:
-                quality = int(input('请选择视频画质：'))
-                if quality == 1 or quality == 2 or quality == 3 or quality == 4:
-                    break
-                else:
-                    print('请输入正确的序号')
-            except ValueError:
-                print('请输入正确的序号')
-
-        return quality
+        html = crawl(url).text
+        pattern = r'\<script\>window\.__playinfo__=(.*?)\</script\>'
+        result = re.findall(pattern, html)[0]
+        temp = json.loads(result)
+        title = BilibiliDownloader._get_title(html, url)
+        return temp, title
 
     @staticmethod
-    def get_duration(html, quality):
+    def get_duration(temp):
         """
-        用xpath从html中提取响应的视频的时长
-        :param html: html
-        :param quality: 用户选择的视频画质
+        从temp中获取视频时长
+        :param temp: temp
         :return: None
         """
-        pattern = r'\<script\>window\.__playinfo__=(.*?)\</script\>'
-        result = re.findall(pattern, html)[0]
-        temp = json.loads(result)
-        accept_quality = temp['data']['accept_description'][quality]
         video_time = temp['data']['dash']['duration']
-        print('当前视频清晰度为{}，视频时长为{}'.format(accept_quality,
-              datetime.timedelta(seconds=video_time)))
-        return None
+        print(f'视频时长为{datetime.timedelta(seconds=video_time)}')
 
     @staticmethod
-    def get_video_and_audio_url(html, quality):
+    def get_video_and_audio_url(temp, url):
         """
-        根据用户选择的画质用xpath从html中提取响应的视频和音频的地址
-        :param html: html
-        :param quality: 用户选择的视频画质
-        :return: 视频和音频的地址
+        :param temp: temp
+        :param url: 用户最初输入的url，在这里运用的目的是为了获取适当的清晰度而重新请求。
+        :return:
         """
-        video_url_list = {
-            '高清 1080P60': '30116.m4s',
-            '高清 1080P': '30080.m4s',
-            '高清 720P': '30064.m4s',
-            '清晰 480P': '30032.m4s',
-            '清晰 360P': '30016.m4s'
-        }
-        pattern = r'\<script\>window\.__playinfo__=(.*?)\</script\>'
-        result = re.findall(pattern, html)[0]
-        temp = json.loads(result)
-        audio_url = temp['data']['dash']['audio'][0]['baseUrl']
-        for i in range(len(temp['data']['dash']['video'])):
-            print(i)
-            video_url = temp['data']['dash']['video'][i]['baseUrl']
-            print(video_url)
-            if video_url_list[quality] in video_url:
-                return video_url, audio_url
-        return
+        # 因为音频文件的url最好获取，所以先获取音频文件的url
+        audio_url = temp['data']['dash']['audio'][0]['base_url']
+
+        # 开始获取视频的url，因为要根据用户选择的url来获取所以有点困难，另外要获取1080P等画质，需要输入cookie，这里有点复杂，所以接下来的注释会有点多。
+        # 1.先获取视频所拥有的所有清晰度
+        accept_quality_list = temp['data']['accept_description']
+        # 2.再根据根据视频拥有的所有的清晰度判断是否要用户输入cookie
+        # 如果视频拥有720P及以上画质，则要供用户选择是否要输入cookie以下载720P以及上画质的视频
+        # 所以判断依据是视频是否拥有720P的画质
+        if '高清 720P' in accept_quality_list:
+            # 3.询问让用户选择填cookie
+            # 这里是视频拥有720P及以上画质的情况
+            # 这时告知用户，再询问用户是否要输入cookie以下载720P以及上画质的视频
+            # 因为用户输入的cookie可能有误，所以要循环，直到用户的操作足以获得视频的url
+            while True:
+                print(
+                    '现在bilibili只有登录才能下载1080P的视频了，\n所以想下载720P及以上清晰度的请填写你的账号cookie，'
+                    '或者VIP密码，\n如果你不想下载720P'
+                    '及以上清晰度的视频，请直接跳过（目前不支持大会员）')
+                cookie = input(
+                    '请输入你的账号cookie，或者VIP密码，\n如果你不想下载720P及以上清晰度的视频，\n请直接跳过'
+                    '（输入自己的cookie的时候别再首末添加任何符号，我们不会收集您的cookie，请放心输入）：')
+                # 4.判断用户有没有填cookie
+                # 5.再根据用户的选择做相应的处理
+                if cookie == '':
+                    # 这里是用户没填cookie的情况
+                    # 调用函数获取视频url
+                    video_url = BilibiliDownloader._get_video_url(temp)
+                    # 返回视频和音频的url
+                    return video_url, audio_url
+                else:
+                    # 这是用户填了cookie的情况，此时又有两种情况，一是用户使用了VIP密钥，二是用户填的是自己的cookie
+                    if cookie == '666':
+                        # 这是用户填了VIP密钥的情况
+                        print('您是VIP，请选择视频拥有的除1080P高码率及以上的任何清晰度')
+                        # 为用户加入VIP专属cookie
+                        headers.update({'cookie': VIP_COOKIE})
+                        # 然后再次请求，获取新的temp, 这里弃用了title，因为已经获取过了
+                        html = crawl(url).text
+                        pattern = r'\<script\>window\.__playinfo__=(.*?)\</script\>'
+                        result = re.findall(pattern, html)[0]
+                        temp = json.loads(result)
+                        # （1）先获取重新请求能够选择的视频清晰度列表
+                        available_quality_list = BilibiliDownloader._get_available_quality_list(
+                            temp)
+                        # (2)再判断是否含有720P及以上画质
+                        if 64 in available_quality_list:
+                            # (3)如果有，则开始获取视频对应的url
+                            # 调用函数获取视频url
+                            video_url = BilibiliDownloader._get_video_url(temp)
+                            # 返回视频和音频的url
+                            return video_url, audio_url
+                        else:
+                            # (3)如果没有，则做以下处理
+                            # 这是没有720P及以上画质的情况，这可能是因为cookie是失效了。
+                            # 先给用户道歉
+                            print('\033[1;31m' + '抱歉,该cookie已失效,正在让您重新选择' + '\033[0m')
+                            # 再让用户重新选择
+                            # 这里直接再次循环
+                    else:
+                        # 这里是用户填了自己的cookie的情况
+                        print('猜测您输入的是您自己的cookie，请确保您输入的cookie是准确的，否则将无法下载720P及以上清晰度的视频')
+                        # 先根据用户填的cookie重新请求
+                        headers.update({'cookie': cookie})
+                        # 然后再次请求，获取新的temp, 这里弃用了title，因为已经获取过了
+                        html = crawl(url).text
+                        pattern = r'\<script\>window\.__playinfo__=(.*?)\</script\>'
+                        result = re.findall(pattern, html)[0]
+                        temp = json.loads(result)
+                        # (1)先获取重新请求能够选择的视频清晰度列表
+                        available_quality_list = BilibiliDownloader._get_available_quality_list(
+                            temp)
+                        # (2)再判断是否含有720P及以上画质
+                        if 64 in available_quality_list:
+                            # 3.如果有，则开始获取视频对应的url
+                            # 调用函数获取视频url
+                            video_url = BilibiliDownloader._get_video_url(temp)
+                            # 返回视频和音频的url
+                            return video_url, audio_url
+                        else:
+                            # (3)如果没有，则做以下处理
+                            # 这是没有720P及以上画质的情况，这可能是因为用户所输入的cookie是无效的。
+                            # 先向用户说明原因
+                            print('\033[1;31m' + '抱歉,该cookie已失效,正在让您重新选择' + '\033[0m')
+                            # 再让用户选择是否要重新输入cookie
+                            print('检测到您输入的cookie无效')
+                            while True:
+                                try:
+                                    choose = input('想重新选择请按1,想直接开始下载的请按2')
+                                    if choose == '1' or choose == '2':
+                                        break
+                                    else:
+                                        print('请输入正确的，在范围内的序号')
+                                except ValueError:
+                                    print('请输入正确的，在范围内的序号')
+                            # 然后再根据用户的选择做出相应的处理
+                            if choose == '1':
+                                # 这里是用户想重新选择的情况
+                                print('您选择了，重新选择，正在让您重新选择')
+                                # 这里直接再次循环
+                            if choose == '2':
+                                # 这里是用户想直接开始下载的情况
+                                # 调用函数获取视频url
+                                video_url = BilibiliDownloader._get_video_url(temp)
+                                # 返回视频和音频的url
+                                return video_url, audio_url
+
+        else:
+            # 3.如果视频没有720P及以上清晰度的视频，程序就会运行到这，直接获取视频的url
+            # 调用函数获取视频url
+            video_url = BilibiliDownloader._get_video_url(temp)
+            # 返回视频和音频的url
+            return video_url, audio_url
 
     @staticmethod
     def show_progress_bar(file_size, downloaded_size, interval_time, interval_downloaded):
+        """
+        进度条显示
+        :param file_size: 文件大小
+        :param downloaded_size: 已下载的大小
+        :param interval_time: 中间间隔时间
+        :param interval_downloaded: 中间下载的大下
+        :return: None
+        """
         chunk_size = 1024 * 1024
 
         percentage = int(downloaded_size / file_size * 40)  # 计算已下载的百分比
         # 显示的进度条
-        show_percentage = '\033[1;35m' + percentage * '━' + \
-            '\033[0m' + (40 - percentage) * '━' + '\033[1;35m'
+        show_percentage = '\033[1;35m' + percentage * '━' + '\033[0m' + (
+                40 - percentage) * '━' + '\033[1;35m '
         show_file_size = str(round(file_size / chunk_size, 1))  # 显示的文件大小
-        show_downloader_size = str(
-            round(downloaded_size / chunk_size, 1))  # 显示的已下载文件大小
+        show_downloader_size = str(round(downloaded_size / chunk_size, 1))  # 显示的已下载文件大小
         # 计算速度
         speed = interval_downloaded / interval_time / chunk_size
         if speed < 5.0:
@@ -273,17 +350,23 @@ class BilibiliDownloader:
         if speed == 0.0 or eta > 1800:
             show_eta = '\033[1;31m' + ' >30min'
         else:
-            show_eta = '\033[1;34m' + ' eta ' + \
-                str(datetime.timedelta(seconds=eta))
+            show_eta = '\033[1;34m' + ' eta ' + str(datetime.timedelta(seconds=eta))
 
             # 'r'每次重新从开始输出，end = ''是不换行
-        print('\r\t' + show_percentage, show_downloader_size + '/' + show_file_size, 'MB', show_speed,
+        print('\r\t' + show_percentage, show_downloader_size + '/' + show_file_size, 'MB',
+              show_speed,
               'MB/s', show_eta, flush=True, end='')
         sys.stdout.flush()  # 刷新缓冲区，防止显示的进度条闪烁
-        return
 
     @staticmethod
     def show_end_bar(file_size, downloaded_size, total_time):
+        """
+        下载结束的进度条显示
+        :param file_size: 文件大小
+        :param downloaded_size: 已下载大小
+        :param total_time: 下载总用时
+        :return: None
+        """
         chunk_size = 1024 * 1024
         show_percentage = '\033[1;32m' + 40 * '━'  # 显示的进度条
         average_speed = file_size / total_time / chunk_size  # 平均速度
@@ -293,11 +376,180 @@ class BilibiliDownloader:
         else:
             show_average_speed = '\033[1;32m' + str(round(average_speed, 1))
         print('\r\t' + show_percentage,
-              str(round(downloaded_size / chunk_size, 1)) + '/' +
-              str(round(file_size / chunk_size, 1)), 'MB',
-              show_average_speed, 'MB/s', '\033[1;34m', 'eta', '0:00:00', '下载总用时：',
+              str(round(downloaded_size / chunk_size, 1)) + '/' + str(
+                  round(file_size / chunk_size, 1)),
+              'MB', show_average_speed, 'MB/s', '\033[1;34m', 'eta', '0:00:00', '下载总用时：',
               str(round(total_time, 1)) + 's' + '\033[0m',
               flush=True)
+
+    @staticmethod
+    def download(title, url, file_url, path):
+        """
+        下载方法
+        :param title: 视频标题
+        :param url: url
+        :param file_url: 文件的url
+        :param path: path
+        :return: None
+        """
+        file_res, file_size = BilibiliDownloader._get_file_information(url, file_url)
+        downloaded_size = 0  # 已下载的文件大小
+        the_last_downloader_size = 0
+        if os.path.exists(f'{path}/{title}_video.mp4'):
+            file_path = f'{path}/{title}_audio.mp4'
+        else:
+            file_path = f'{path}/{title}_video.mp4'
+        with open(file_path, 'ab') as file:
+            total_timing = time.time()
+            timing = total_timing
+            for data in file_res.iter_content(chunk_size=1024):
+                file.write(data)  # 每次只写入data大小
+                downloaded_size += len(data)
+                if downloaded_size == file_size:
+                    BilibiliDownloader.show_end_bar(file_size, downloaded_size,
+                                                    time.time() - total_timing)
+                if time.time() - timing > 0.5:
+                    interval_downloaded = downloaded_size - the_last_downloader_size
+                    BilibiliDownloader.show_progress_bar(file_size, downloaded_size,
+                                                         time.time() - timing,
+                                                         interval_downloaded)
+                    timing = time.time()
+                    the_last_downloader_size = downloaded_size
+
+    @staticmethod
+    def combine(title, path):
+        """
+        合成视频
+        :param title: 视频标题
+        :param path: path
+        :return: None
+        """
+        print('正在合成视频和音频')
+        command = f'ffmpeg -i {path}/{title}_video.mp4 -i {path}/{title}_audio.mp4 ' \
+                  f'-c copy {path}/{title}.mp4 -y -loglevel quiet '
+        subprocess.Popen(command, shell=True)
+        while True:
+            try:
+                if os.path.exists(f'{path}/{title}.mp4'):
+                    os.remove(f'{path}/{title}_video.mp4')
+                    os.remove(f'{path}/{title}_audio.mp4')
+                    break
+            except PermissionError:
+                pass
+        print('合成完毕')
+        return
+
+    @staticmethod
+    def _get_title(html, url):
+        """
+        获取视频标题
+        :param html: html
+        :param url: url
+        :return: 视频标题
+        """
+        print('正在获取视频标题')
+        request_counts = 0
+        while True:
+            try:
+                title = etree.HTML(html)
+                title = title.xpath('//div[@id="viewbox_report"]/h1/text()')[0]
+                break
+            except IndexError:
+                request_counts += 1
+                print(f'获取标题失败，正在帮您重新请求(请求次数：{request_counts})')
+                html = crawl(url)
+        # 标题违规字符处理，防止文件名报错
+        title = re.sub('[\\\\:*;?/"<>\\]|\\[] ', '', title)
+        title = re.sub(' ', '', title)
+        print('获取成功')
+        print('您当前正在下载：', title)
+        return title
+
+    @staticmethod
+    def _get_video_url(temp):
+        """
+        获取视频的url
+        :param temp: temp
+        :return: 视频的url
+        """
+        # 1.先获取当前能够选择的视频清晰度列表
+        available_quality_list = BilibiliDownloader._get_available_quality_list(temp)
+        # 2.再根据列表生成一个供用户选择的字典
+        choose_dice = BilibiliDownloader._get_choose_dict(available_quality_list)
+        # 3.然后让用户选择,获取对应的id
+        video_id = BilibiliDownloader._get_choose(choose_dice)
+        # 4.最后根据id来获取视频对应的url
+        videos = temp['data']['dash']['video']
+        for each in videos:
+            if video_id == each['id']:
+                video_url = each['base_url']
+                return video_url
+
+    @staticmethod
+    def _get_choose(choose_dict):
+        """
+        根据用户选择的清晰度，获取当前要下载的视频的清晰度对应的id
+        :param choose_dict: 选择的字典
+        :return: 用户选择的清晰度的id
+        """
+        contrast_dict = {
+            '4K': 120,
+            '高清 1080P60': 116,
+            '高清 1080P': 80,
+            '高清 720P': 64,
+            '清晰 480P': 32,
+            '清晰 360P': 16
+        }
+        print(re.sub('[{}\',]', '', str(choose_dict)))
+        while True:
+            try:
+                quality = int(input('请选择视频画质：'))
+                if quality <= len(choose_dict):
+                    choose_id = contrast_dict[choose_dict[quality]]
+                    break
+                else:
+                    print('请输入正确的，在范围内的序号')
+            except ValueError:
+                print('请输入正确的，在范围内的序号')
+        return choose_id
+
+    @staticmethod
+    def _get_choose_dict(available_quality_list):
+        """
+        选择清晰度的字典
+        :param available_quality_list: 当前能够选择的清晰度列表
+        :return: 选择的字典，例如：{1: '高清 1080P', 2: 64: '高清 720P'}
+        """
+        contrast_dict = {
+            120: '4K',
+            116: '高清 1080P60',
+            80: '高清 1080P',
+            64: '高清 720P',
+            32: '清晰 480P',
+            16: '清晰 360P'
+        }
+        choose_dict = {}
+        i = 0
+        for each in available_quality_list:
+            i += 1
+            choose_dict[i] = contrast_dict[each]
+        return choose_dict
+
+    @staticmethod
+    def _get_available_quality_list(temp):
+        """
+        获取当前能够下载的视频清晰度
+        :param temp: temp
+        :return: 返回一个列表，包含当前能够下载的视频清晰度
+        """
+        all_quality_list = [120, 116, 80, 64, 32, 16]
+        available_quality_list = []
+        videos = temp['data']['dash']['video']
+        for each in videos:
+            each_id = each['id']
+            if each_id in all_quality_list and each_id not in available_quality_list:
+                available_quality_list.append(each_id)
+        return available_quality_list
 
     @staticmethod
     def _get_file_information(url, file_url):
@@ -314,63 +566,16 @@ class BilibiliDownloader:
         file_size = int(file_res.headers['content-length'])  # 获取视频文件大小
         return file_res, file_size
 
-    @staticmethod
-    def download(title, url, file_url):
-        file_res, file_size = BilibiliDownloader._get_file_information(
-            url, file_url)
-        downloaded_size = 0  # 已下载的文件大小
-        the_last_downloader_size = 0
-        if os.path.exists('%s_video.mp4' % (path + '/' + title)):
-            file_path = '%s_audio.mp4' % (path + '/' + title)
-        else:
-            file_path = '%s_video.mp4' % (path + '/' + title)
-        with open(file_path, 'ab') as f:
-            total_timing = time.time()
-            timing = total_timing
-            for data in file_res.iter_content(chunk_size=1024):
-                f.write(data)  # 每次只写入data大小
-                downloaded_size += len(data)
-                if downloaded_size == file_size:
-                    BilibiliDownloader.show_end_bar(
-                        file_size, downloaded_size, time.time() - total_timing)
-                if time.time() - timing > 0.5:
-                    interval_downloaded = downloaded_size - the_last_downloader_size
-                    BilibiliDownloader.show_progress_bar(file_size, downloaded_size, time.time() - timing,
-                                                          interval_downloaded)
-                    timing = time.time()
-                    the_last_downloader_size = downloaded_size
-        return
-
-    @staticmethod
-    def combine(title):
-        """
-        合成视频
-        :param title: 视频标题
-        :return: None
-        """
-        print('正在合成视频和音频')
-        command = 'ffmpeg -i %s_video.mp4 -i %s_audio.mp4 -c copy %s.mp4 -y -loglevel quiet' % (
-            path + '/' + title, path + '/' + title, path + '/' + title)
-        subprocess.Popen(command, shell=True)
-        while True:
-            try:
-                if os.path.exists('%s.mp4' % (path + '/' + title)):
-                    os.remove('%s_video.mp4' % (path + '/' + title))
-                    os.remove('%s_audio.mp4' % (path + '/' + title))
-                    break
-            except PermissionError:
-                pass
-        print('合成完毕')
-        return
-
 
 def run():
-    global path
-
+    """
+    运行的主方法
+    :return: None
+    """
     announcement()
     url = get_url()
-    path = get_path()
-    BilibiliDownloader(url)
+    if 'bilibili.com' in url:
+        BilibiliDownloader.run(url)
 
 
 if __name__ == "__main__":
