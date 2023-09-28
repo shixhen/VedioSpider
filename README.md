@@ -2,17 +2,16 @@
 ## 存储中国各大视频网站的爬虫（下载器）
 
 
-包含python和Windows版本
 
 目前支持的网站：  
 1.__哔哩哔哩__  
+2.__抖音__
 
 __(还含有m3u8下载器等程序)__  
 
 
-最近的更新日期：2023.1.2
 持续更新中......
 
-（目前在写C#版）
+如果可以的话，能到抖音https://www.douyin.com/user/MS4wLjABAAAA5SH_so8SO46OPZK4Ibzxd1gebCgQLGzEVUdcuaQLRAFIGjEu5ptkqV5zYK7OvdL4 ，bilibilihttps://space.bilibili.com/1068621305支持一下我吗？
 
 如果你喜欢，请给个星支持一下吧 
