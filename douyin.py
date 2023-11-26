@@ -16,11 +16,20 @@ from utils.download import file_download
 
 log = Log()
 
-COOKIE = ''
+if os.path.exists('config.json'):
+    with open('config.json') as json_file:
+        # 加载JSON数据
+        try:
+            data = json.load(json_file)
+            COOKIE = data["douyin_cookie"]
+            api_cookie = data["douyin_api_cookie"]
+        except json.decoder.JSONDecodeError:
+            log.e('获取data时错误')
+
 
 # api_cookie,主要包含三个参数，msToken，odin_tt, bd_ticket_guard_client_data
 
-api_cookie = ''
+
 
 headers = {
     "user-agent": 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko)'
